@@ -18,7 +18,7 @@ def save_image(filename):
     name = os.path.basename(filename)[:-4]
     img = Image.open(filename)
     path_to = sg.popup_get_folder('file to open', no_window=True)
-    img.save(f'{path_to}/{name}.png', format='PNG')
+    img.save(f'{path_to}/smoothed.png', format='PNG')
     print('Saved')
 
 
