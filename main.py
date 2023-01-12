@@ -7,7 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 # wybranie obrazu do obróbki
@@ -20,6 +19,7 @@ def select(filename):
     return sg.Window(filename, layout, location=(800, 600), resizable=True, finalize=True)
 
 
+# zapisanie obrazu
 def save_image(filename):
     img = Image.open(filename)
     path_to = sg.popup_get_folder('file to open', no_window=True)
@@ -27,6 +27,7 @@ def save_image(filename):
     print('Saved')
 
 
+# wygładzanie za pomocą dzielenia przez podaną liczbę
 def smooth(filename, num):
     img = cv2.imread(filename, 0)
     height = img.shape[0]
@@ -40,10 +41,11 @@ def smooth(filename, num):
     plt.imsave('copied/smooth.jpg', fin_img)
 
 
+# funkcje koloryzujące podstawowe
 def mono1(filename):
-    img = mpimg.imread(filename)
-    plt.imshow(img, cmap='Greys')
-    plt.show()
+    img = mpimg.imread(filename)  # wczytanie obrazu
+    plt.imshow(img, cmap='Greys')  # odpowiednia koloryzacja
+    plt.show()  # wyświetlenie obrazu
 
 
 def mono2(filename):
@@ -76,15 +78,17 @@ def reds(filename):
     plt.show()
 
 
-def custom(filename, colors):
-    img = mpimg.imread(filename)
-    # colors = ["darkorange", "gold", "lawngreen", "lightseagreen"]
-    cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
-    plt.imshow(img, cmap=cmap1)
-    plt.show()
+# koloryzacja zgodna z kolorami zadanymi przez użytkownika
+def custom(filename, cols):
+    img = mpimg.imread(filename)  # wczytanie obrazu
+    cmap1 = LinearSegmentedColormap.from_list("mycmap", cols)  # utworzenie kolormapy zgodnie z kolorami użytkownika
+    plt.imshow(img, cmap=cmap1)  # odpowiednia koloryzacja
+    plt.show()  # wyświetlenie obrazu
 
 
+# funkcja umożliwiająca wybranie kolorów użytkownikowi
 def colors():
+    # szata graficzna okna
     layout = [[sg.Image('copied/fig.png')],
         [[sg.Image('obrazy/b.png', pad=10), sg.Image('obrazy/c.png', pad=10), sg.Image('obrazy/k.png', pad=10)],
         [sg.Image('obrazy/green.png', pad=10), sg.Image('obrazy/m.png', pad=10), sg.Image('obrazy/w.png', pad=10)],
@@ -97,13 +101,14 @@ def colors():
     n_window = sg.Window('Podaj dane', layout, element_justification='center')
     event, values = n_window.read()
     n_window.close()
-    cols = ['b', 'c', 'k', 'g', 'm', 'w', 'r', 'y', 'gray']
-    truths = [values[10], values[11], values[12], values[13], values[14], values[15], values[16], values[17], values[18]]
-    chosen = dict(zip(cols, truths))
-    end = list(filter(lambda x: chosen[x] == True, chosen))
+    cols = ['b', 'c', 'k', 'g', 'm', 'w', 'r', 'y', 'gray']  # możliwe kolory
+    truths = [values[10], values[11], values[12], values[13], values[14], values[15], values[16], values[17], values[18]]  # wybrane checkboxy
+    chosen = dict(zip(cols, truths))  # połączenie kolorów z ich checkboxami tworzy słownik wybranych kolorów
+    end = list(filter(lambda x: chosen[x] is True, chosen))  # lista wybranych kolorów
     return end
 
 
+# utworzenie i zapisanie histogramu
 def histogram(filename):
     img = cv2.imread(filename, 0)
     # histogram of image
@@ -112,6 +117,7 @@ def histogram(filename):
     plt.close()
 
 
+# główne okno programu
 def menus():
     sg.theme('LightGreen')
     sg.set_options(element_padding=(0, 0))
@@ -121,11 +127,13 @@ def menus():
                 ['&Modify', ['Smoothing']],
                 ['Colorize', ['Monochrome(1)', 'Monochrome(2)', 'Spectrum', 'Rainbow', 'Blackbody', 'Iron', 'Custom']]]
 
+    # układ głównego menu
     layout = [
         [sg.Menu(menu_def, tearoff=False, pad=(200, 1))],
         [sg.Output(expand_x=True, expand_y=True, size=(60, 5))]
     ]
 
+    # inicjalizacja głównego okna
     window = sg.Window("Colorize",
                        layout,
                        default_element_size=(12, 1),
@@ -138,7 +146,7 @@ def menus():
             shutil.rmtree('copied')
             break
         print(event, values)
-        # ------ Process menu choices ------ #
+        # przetwarzanie wyborów z menu głównego
         if event == 'Open':
             filename = sg.popup_get_file('file to open', no_window=True)
             new_window = select(filename)
@@ -168,12 +176,12 @@ def menus():
         elif event == 'Custom':
             histogram(filename)
             colory = colors()
-
             custom(filename, colory)
 
     window.close()
 
 
+# uruchomienie programu
 if __name__ == '__main__':
     if os.path.exists('copied'):
         shutil.rmtree('copied')
