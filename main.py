@@ -6,16 +6,20 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from matplotlib.colors import LinearSegmentedColormap
 
 
 # wybranie obrazu do obróbki
-def select_image():
-    filename = sg.popup_get_file('file to open', no_window=True) # ścieżka do wybranego obrazu
-    return filename
+def select(filename):
+    img = cv2.imread(filename, 0)
+    im = Image.fromarray(img)
+    im.thumbnail(size=(900, 900))
+    im.save(filename, format="PNG")
+    layout = [[sg.Image(filename)]]
+    return sg.Window(filename, layout, location=(800, 600), resizable=True, finalize=True)
 
 
 def save_image(filename):
-    name = os.path.basename(filename)[:-4]
     img = Image.open(filename)
     path_to = sg.popup_get_folder('file to open', no_window=True)
     img.save(f'{path_to}/smoothed.png', format='PNG')
@@ -31,49 +35,72 @@ def smooth(filename, num):
         for j in range(width):
             n_img[i][j] = img[i][j]/num
     fin_img = np.clip(n_img.round(), 0, 255)
+    fin_img = fin_img.astype(int)
     plt.imsave('copied/smooth.jpg', fin_img)
 
 
 def mono1(filename):
     img = mpimg.imread(filename)
-    lum_img = img[:, :, 0]
-    plt.imshow(lum_img, cmap='Greys')
+    plt.imshow(img, cmap='Greys')
     plt.show()
 
 
 def mono2(filename):
     img = mpimg.imread(filename)
-    lum_img = img[:, :, 0]
-    plt.imshow(lum_img, cmap='Greys_r')
+    plt.imshow(img, cmap='Greys_r')
     plt.show()
 
 
 def spectrum(filename):
     img = mpimg.imread(filename)
-    lum_img = img[:, :, 0]
-    plt.imshow(lum_img, cmap='hsv')
+    plt.imshow(img, cmap='hsv')
     plt.show()
 
 
 def rainbow(filename):
     img = mpimg.imread(filename)
-    lum_img = img[:, :, 0]
-    plt.imshow(lum_img, cmap='rainbow')
+    plt.imshow(img, cmap='rainbow')
     plt.show()
 
 
 def blackbody(filename):
     img = mpimg.imread(filename)
-    lum_img = img[:, :, 0]
-    plt.imshow(lum_img, cmap='autumn')
+    plt.imshow(img, cmap='autumn')
     plt.show()
 
 
 def reds(filename):
     img = mpimg.imread(filename)
-    lum_img = img[:, :, 0]
-    plt.imshow(lum_img, cmap='Reds')
+    plt.imshow(img, cmap='Reds')
     plt.show()
+
+
+def custom(filename, colors):
+    img = mpimg.imread(filename)
+    # colors = ["darkorange", "gold", "lawngreen", "lightseagreen"]
+    cmap1 = LinearSegmentedColormap.from_list("mycmap", colors)
+    plt.imshow(img, cmap=cmap1)
+    plt.show()
+
+
+def colors():
+    layout = [
+        [[sg.Image('obrazy/b.png', pad=10), sg.Image('obrazy/c.png', pad=10), sg.Image('obrazy/k.png', pad=10)],
+        [sg.Image('obrazy/green.png', pad=10), sg.Image('obrazy/m.png', pad=10), sg.Image('obrazy/w.png', pad=10)],
+        [sg.Image('obrazy/r.png', pad=10), sg.Image('obrazy/y.png', pad=10), sg.Image('obrazy/g.png', pad=10)]],
+        [[sg.Checkbox('B', default=False), sg.Checkbox('C', default=False), sg.Checkbox('K', default=False)],
+         [sg.Checkbox('G', default=False), sg.Checkbox('M', default=False), sg.Checkbox('W', default=False)],
+         [sg.Checkbox('R', default=False), sg.Checkbox('Y', default=False), sg.Checkbox('G', default=False)]],
+        [sg.Submit()]
+    ]
+    n_window = sg.Window('Podaj dane', layout)
+    event, values = n_window.read()
+    n_window.close()
+    cols = ['b', 'c', 'k', 'g', 'm', 'w', 'r', 'y', 'gray']
+    truths = [values[9], values[10], values[11], values[12], values[13], values[14], values[15], values[16], values[17]]
+    chosen = dict(zip(cols, truths))
+    end = list(filter(lambda x: chosen[x] == True, chosen))
+    return end
 
 
 def menus():
@@ -83,7 +110,7 @@ def menus():
     # opcje menu
     menu_def = [['&File', ['&Open', 'Save']],
                 ['&Modify', ['Smoothing']],
-                ['Colorize', ['Monochrome(1)', 'Monochrome(2)', 'Spectrum', 'Rainbow', 'Blackbody', 'Iron']]]
+                ['Colorize', ['Monochrome(1)', 'Monochrome(2)', 'Spectrum', 'Rainbow', 'Blackbody', 'Iron', 'Custom']]]
 
     layout = [
         [sg.Menu(menu_def, tearoff=False, pad=(200, 1))],
@@ -104,7 +131,8 @@ def menus():
         print(event, values)
         # ------ Process menu choices ------ #
         if event == 'Open':
-            filename = select_image()
+            filename = sg.popup_get_file('file to open', no_window=True)
+            new_window = select(filename)
         elif event == 'Save':
             save_image(filename)
         elif event == 'Smoothing':
@@ -128,6 +156,9 @@ def menus():
             blackbody(filename)
         elif event == "Iron":
             reds(filename)
+        elif event == 'Custom':
+            colory = colors()
+            custom(filename, colory)
 
     window.close()
 
