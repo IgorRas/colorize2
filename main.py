@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 # wybranie obrazu do obróbki
@@ -84,7 +85,7 @@ def custom(filename, colors):
 
 
 def colors():
-    layout = [
+    layout = [[sg.Image('copied/fig.png')],
         [[sg.Image('obrazy/b.png', pad=10), sg.Image('obrazy/c.png', pad=10), sg.Image('obrazy/k.png', pad=10)],
         [sg.Image('obrazy/green.png', pad=10), sg.Image('obrazy/m.png', pad=10), sg.Image('obrazy/w.png', pad=10)],
         [sg.Image('obrazy/r.png', pad=10), sg.Image('obrazy/y.png', pad=10), sg.Image('obrazy/g.png', pad=10)]],
@@ -93,14 +94,22 @@ def colors():
          [sg.Checkbox('R', default=False), sg.Checkbox('Y', default=False), sg.Checkbox('G', default=False)]],
         [sg.Submit()]
     ]
-    n_window = sg.Window('Podaj dane', layout)
+    n_window = sg.Window('Podaj dane', layout, element_justification='center')
     event, values = n_window.read()
     n_window.close()
     cols = ['b', 'c', 'k', 'g', 'm', 'w', 'r', 'y', 'gray']
-    truths = [values[9], values[10], values[11], values[12], values[13], values[14], values[15], values[16], values[17]]
+    truths = [values[10], values[11], values[12], values[13], values[14], values[15], values[16], values[17], values[18]]
     chosen = dict(zip(cols, truths))
     end = list(filter(lambda x: chosen[x] == True, chosen))
     return end
+
+
+def histogram(filename):
+    img = cv2.imread(filename, 0)
+    # histogram of image
+    plt.hist(img.ravel(), 256, [0, 256])
+    plt.savefig('copied/fig.png', bbox_inches='tight')
+    plt.close()
 
 
 def menus():
@@ -157,7 +166,9 @@ def menus():
         elif event == "Iron":
             reds(filename)
         elif event == 'Custom':
+            histogram(filename)
             colory = colors()
+
             custom(filename, colory)
 
     window.close()
